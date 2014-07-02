@@ -10,6 +10,7 @@ import cv2
 import json
 import random
 import myglobals
+import math
 
 currentShutter = None
 currentDelay = None
@@ -90,10 +91,12 @@ def brightestPoint(cam):
         cv2.imwrite('./imgs/fg.png', fg)
     if mm[1] < 50:
         return {'x':0, 'y':0, 'x1':0, 'y1':0, 'i':0} 
+    print( "mm", mm)
     xy = [float(mm[3][0]+0.5)/imgshape[1], float(mm[3][1]+0.5)/imgshape[0] ]
     background = 0.99*background + 0.01 * mat 
     print(mm)
-    return({'x':mm[3][0], 'y':mm[3][1], 'x1':xy[0], 'y1':xy[1], 'i':1000} )  
+    intens = math.sqrt(3) * mm[1]#make intensity map more to the 3 color method used in color images
+    return({'x':mm[3][0], 'y':mm[3][1], 'x1':xy[0], 'y1':xy[1], 'i':intens} )  
 
 def setDelay(cam, delay):
     global currentDelay

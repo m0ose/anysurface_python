@@ -52,6 +52,11 @@ class Root(object):
         cherrypy.response.headers["Access-Control-Allow-Origin"] = "*" 
         parseArguments( shutter, gain, delay)
         return json.dumps( cs.brightestPoint( cs.cam))
+    @cherrypy.expose      
+    def  brightestpoint_json(self, shutter=-999, gain=-999, delay=-999):
+        cherrypy.response.headers["Access-Control-Allow-Origin"] = "*" 
+        parseArguments( shutter, gain, delay)
+        return json.dumps( cs.brightestPoint( cs.cam))
     @cherrypy.expose
     def stressTest_html(self):
         return open( u'stressTest.html')
