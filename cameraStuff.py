@@ -44,9 +44,11 @@ def setDefaults(cam0):
     cam0.trigger_delay.on = False   
 
 def restartCamera( cam0):
-    myglobals.logger.info("restarting camera")
+    print( "restart camera")
+    #myglobals.logger.info("restarting camera")
     cam0.stop()
     cam0.start( interactive=True)
+    setDefaults(cam0)
 
 
 
@@ -64,6 +66,8 @@ def getInfo(cam0):
         result = result +  ("feat: %s (cam0): %s" % (feat,myfeat.val))+ "\t"
         if hasattr(myfeat, 'range'):
             result = result +  "    range: " +  str(myfeat.range)+ "\n"
+        if hasattr( myfeat, 'mode'):
+            result = result + "  mode: " + str( myfeat.mode) + "\n"
     result = result +  "trigger ON:" + str(cam0.trigger.on)+ "\n"
     return result
 
@@ -91,7 +95,7 @@ def brightestPoint(cam):
         cv2.imwrite('./imgs/fg.png', fg)
     if mm[1] < 50:
         return {'x':0, 'y':0, 'x1':0, 'y1':0, 'i':0} 
-    print( "mm", mm)
+    #print( "mm", mm)
     xy = [float(mm[3][0]+0.5)/imgshape[1], float(mm[3][1]+0.5)/imgshape[0] ]
     background = 0.99*background + 0.01 * mat 
     print(mm)
@@ -125,14 +129,22 @@ def setShutter(cam, shutter):
     global currentShutter
     changed = False
     if  currentShutter != shutter:
-        if shutter <= -1 and shutter > -999:
+        if shutter < 0 :
+            print('\nsetting shutter to auto\n')
+            cam.brightness.mode = 'auto'#not sure why i need to do this
+            cam.exposure.mode = 'auto'# not sure why i need to do this either
             cam.shutter.mode='auto'
+            #restartCamera( cam)
+            print(getInfo(cam))
+
+
         elif shutter >= 0 :
+            cam.shutter.on = True
             cam.shutter.mode='manual'
             cam.shutter.val = shutter
         currentShutter = shutter
         changed = True
-        print("set shutter to", shutter)
+        print("set shutter to", shutter, shutter < 0)
         #time.sleep(0.0030)#take one picture 
         showImg(cam)
     return changed      
@@ -142,14 +154,16 @@ def setGain(cam, gain):
     global currentGain
     changed = False
     if  currentGain != gain:
-        if gain <= -1 and gain > -999:
+        if gain < 0:
+            print('\nsetting gain to auto\n')
             cam.gain.mode='auto'
         elif gain >= 0 :
+            cam.gain.on = True
             cam.gain.mode='manual'
             cam.gain.val = gain
         currentGain = gain
         changed = True
-        print("set gain to", gain)
+        print("set gain to", gain, gain < 0)
         #time.sleep(0.0030)#take one picture 
         showImg(cam)
     return changed     

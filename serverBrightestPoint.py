@@ -77,7 +77,7 @@ def parseArguments( shutter, gain, delay):
 
 def getFormattedImage(imgFormat):
     cherrypy.response.headers["Access-Control-Allow-Origin"] = "*" 
-    cherrypy.response.headers['Content-Type'] = 'image/png'
+    cherrypy.response.headers['Content-Type'] = 'image/' + imgFormat.lower()
     outimg = getImage()
     output = StringIO.StringIO()
     outimg.save(output, format=imgFormat)
@@ -108,9 +108,11 @@ def getIndex():
 
 
 if __name__ == '__main__':
-    cherrypy.config.update({'server.socket_host': '0.0.0.0',
-                            'server.socket_port': myport,
-                            'engine.autoreload_on': False})
+    cherrypy.config.update({
+                            'engine.autoreload_on': False,
+                            'engine.threadCount': 1 ,
+                            "server.logToScreen" : True,
+                            })
     config = {  }
     cherrypy.quickstart(Root(), '/', config)
 
