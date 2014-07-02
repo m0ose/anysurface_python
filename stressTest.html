@@ -1,0 +1,359 @@
+<html>
+<head>
+<script type="text/javascript">
+  url = 'http://127.0.0.1:8080/'
+  var rapidCount = 0
+  var rapidId
+
+  function rapidFireImages( interval ){
+    rapidCount = 0
+    if( ! interval ){
+      interval = 80
+    }
+    rapidId = setInterval(function(){
+      if( rapidCount < 60){
+        takePicture()
+      }
+      else{
+        clearInterval(rapidId)
+      }
+      rapidCount ++ 
+    }, interval)  
+  }
+
+  var pauseTime = 0
+
+  function gonuts(){
+    setInterval(function(){
+      var now = new Date().getTime()
+      if( now < pauseTime){
+        return
+      }
+      if( Math.random() > 0.8){
+        takePicture()
+      }
+      if( Math.random() > 0.99){
+        findMinMax()
+      }
+      if( Math.random() > 0.98){
+        pauseTime = now + Math.random()*10000 
+        console.log('pausing')
+      }
+
+    },10)
+  }
+
+  function takePicture(){
+    var dv = document.getElementById('imgs')
+    var dv2 = document.createElement('div')
+    var im = new Image()
+    var start = new Date().getTime()
+    im.onload=function(){
+      var end = new Date().getTime()
+      console.log('image loaded',end-start,'ms')
+      var dv3 = document.createElement('div')
+      dv3.innerHTML = ""+end-start+" ms"
+      dv2.appendChild(dv3)
+    }
+    im.onerror = function(){
+      console.warn((new Date())+'error loading image.png')
+      var dve = document.getElementById('errors')
+      dve.innerHTML = (new Date())+" Image load error <hr>" + dve.innerHTML
+    }
+    var rand = Math.random;
+    var floor = Math.floor;
+    var params = "?shutter=" + floor( rand() * 100 -20) + "&gain=" + floor( rand() * 50 - 10 ); 
+    if( rand() > 0.9){
+        im.src=url + 'image.png' + params;
+    }
+    else{
+        im.src=url + 'image.png';
+    }
+    dv2.appendChild(im)
+    dv.appendChild(dv2)
+  }
+
+  function findMinMax(){
+    var dv = document.getElementById('texts')
+    
+    var start = new Date().getTime()
+    function reqListener () {
+      var end = new Date().getTime()
+        console.log(this.responseText);
+        dv.innerHTML = String(end - start) + " ms . Response :" + this.responseText + "<hr>" + dv.innerHTML
+    }
+
+    var oReq = new XMLHttpRequest();
+    oReq.addEventListener("error", function(){ 
+      console.warn('error loading shutter')
+      var dve = document.getElementById('errors')
+        dve.innerHTML = (new Date())+" find min max shutter error<hr>" + dve.innerHTML
+    }, false);
+    oReq.onload = reqListener;
+    oReq.open("get", url + 'findMinMax', true);
+    oReq.send();
+    
+  
+  }
+
+  function getLasers( n ){
+    
+    var dv = document.getElementById('texts')
+    
+    var start = new Date().getTime()
+    function reqListener () {
+      var end = new Date().getTime()
+        console.log(this.responseText);
+        dv.innerHTML = String(end - start) + " ms . Response :" + this.responseText + "<hr>" + dv.innerHTML
+      if( n>0){
+            getLasers( n-1)
+      }
+    }
+
+    var oReq = new XMLHttpRequest();
+    oReq.addEventListener("error", function(){ 
+      console.warn('error loading shutter')
+      var dve = document.getElementById('errors')
+        dve.innerHTML = (new Date())+" find min max shutter error<hr>" + dve.innerHTML
+    }, false);
+    oReq.onload = reqListener;
+    oReq.open("get", url + 'brightestPoint.json?shutter=10&gain=0', true);
+    oReq.send();
+  }
+
+  function HDR(){
+    var bunk = new Image() 
+    var imL = new Image()
+    imL.crossOrigin="anonymous";
+    var imM = new Image()
+    imM.crossOrigin="anonymous";
+
+    var imH = new Image()
+    imH.crossOrigin="anonymous";
+
+
+    bunk.src = "http://127.0.0.1:8080/shot.jpg?shutter=10&gain=0"
+    imL.src = "http://127.0.0.1:8080/shot.jpg?shutter=10&gain=0"
+    imM.src = "http://127.0.0.1:8080/shot.jpg?shutter=30&gain=0"
+    imH.src = "http://127.0.0.1:8080/shot.jpg?shutter=90&gain=0"
+    var dv = document.getElementById('imgs')
+      var dv2 = document.createElement('div')
+
+      dv2.appendChild(imL)
+      dv2.appendChild(imM)
+      dv2.appendChild(imH)
+
+      dv.appendChild(dv2)
+    setTimeout( function(){
+      var L = getimgdata( imL)
+      var M = getimgdata( imM)
+      var H = getimgdata( imH)
+      var res = getimgdata( imL)
+      console.log("intensity calc")
+      var max = Math.max
+      for( var i=0; i < res.data.length; i+=4){
+
+        var inL = intensity( L.data, i )
+        var inM = intensity( M.data, i )
+        var inH = intensity( H.data, i )
+        res.data[i] = H.data[i];res.data[i+1] = H.data[i+1];res.data[i+2] = H.data[i+2];
+        res.data[i+3] = 255;
+
+        var rL = 4*(-(inL*inL)/255 + inL)
+        var rM = 4*(-(inM*inM)/255 + inM)
+        var rH = 4*(-(inH*inH)/255 + inH)
+        rL = rL / (4*(rL+rM+rH));
+        rM = rM / (4*(rL+rM+rH));
+        rH = rH / (4*(rL+rM+rH));
+
+        res.data[i] = max(0,rL * L.data[i]) + max(rM * M.data[i]) + max(rH * H.data[i]);
+        res.data[i+1] = max(0,rL * L.data[i+1]) + max(rM * M.data[i+1]) + max(rH * H.data[i+1]);
+        res.data[i+2] = max(0,rL * L.data[i+2]) + max(rM * M.data[i+2]) + max(rH * H.data[i+2]);
+
+        /*if( inH > 180){
+          res.data[i] = M.data[i];res.data[i+1] = M.data[i+1];res.data[i+2] = M.data[i+2];
+        }
+        if( inM > 150 && imL > 30){
+          res.data[i] = L.data[i];res.data[i+1] = L.data[i+1];res.data[i+2] = L.data[i+2];
+        }
+        */
+      }
+      var can2 = document.createElement('canvas')
+      can2.width = imL.width
+      can2.height= imL.height
+      var ctx2 = can2.getContext('2d')
+      ctx2.putImageData(res,0,0)
+      dv2.appendChild(can2)
+    },4000)
+  }
+
+  function intensity( data, i){
+        var r = data[i]
+        var g = data[i+1]
+        var b = data[i+2]
+        var intens = Math.sqrt( r*r+g*g+b*b)  
+        return intens
+  }
+
+  function getimgdata(img){
+    var can = document.createElement('canvas')
+    can.width = img.width
+    can.height = img.height
+    var ctx = can.getContext('2d');
+    ctx.drawImage( img,0,0);
+    var imgd = ctx.getImageData(0,0, img.width, img.height)
+    return imgd
+  }
+
+
+  function testTriggers(){
+      var dv = document.getElementById('imgs')
+      
+    for(var i=0.000; i < 0.0090; i+= 0.0002){
+      var dv2 = document.createElement('div')
+      var img = new Image()
+      img.style.height = img.style.width = "200px"
+      var sh = i.toPrecision(6)
+      dv2.innerHTML = " <br>trigger: " + sh + "<br>"
+      dv2.appendChild( img)
+      dv.appendChild(dv2)
+      img.src = "http://127.0.0.1:8080/shot.jpg?shutter=20&gain=40&delay="+sh
+    }
+  }
+    function testshutter(shutter){
+      
+      var dv = document.getElementById('imgs')
+      var dv2 = document.createElement('div')
+      var img = new Image()
+      img.style.height = img.style.width = "200px"
+      var sh = shutter
+      dv2.innerHTML = " <br>shutter: " + sh + "<br>"
+      dv2.appendChild( img)
+      dv.appendChild(dv2)
+      img.onload = function(){
+        if( shutter > 0 ){
+          testshutter( shutter - 1)
+        }
+      }
+      img.src = "http://127.0.0.1:8080/shot.jpg?gain=0&shutter=" + shutter
+  }
+
+
+  function getLasers2( n ){
+    var cn = document.getElementById('floop') 
+    if( cn ==null){
+      var dv = document.getElementById('imgs')
+      cn = document.createElement('canvas')
+      cn.id="floop"
+      cn.width = 640
+      cn.height = 480
+      dv.appendChild(cn)
+    }
+    
+    var ctx = cn.getContext('2d')
+    
+    var start = new Date().getTime()
+    function reqListener2 () {
+      var end = new Date().getTime()
+      var obj = JSON.parse( this.responseText)
+        //console.log(this.responseText);
+        ctx.fillStyle = "rgba(0,0,0,0.2)"
+      ctx.fillRect( 0, 0, cn.width, cn.height)
+      var r = Math.sqrt(obj.i);
+      if( obj.i > 100){
+        ctx.fillStyle = "rgba(255,0,10,255)"
+      }
+      else{
+        ctx.fillStyle = "rgba(255,255,10,0.9)"
+      }
+        ctx.fillRect( obj.x-r/2, obj.y-r/2,r,r)
+    
+      //dv.innerHTML = String(end - start) + " ms . Response :" + this.responseText + "<hr>" + dv.innerHTML
+      if( n>0){
+            getLasers2( n-1)
+      }
+    }
+
+    var oReq = new XMLHttpRequest();
+    oReq.addEventListener("error", function(){ 
+      console.warn('error loading shutter')
+      var dve = document.getElementById('errors')
+        dve.innerHTML = (new Date())+" find min max shutter error<hr>" + dve.innerHTML
+    }, false);
+    oReq.onload = reqListener2;
+    oReq.open("get", url + 'brightestPoint.json?shutter=10&gain=0', true);
+    oReq.send();
+  }
+
+</script>
+<style>
+#imgs {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    //-webkit-box-direction: reverse;
+    -moz-box-direction: reverse;
+    -webkit-box-orient: horizontal;
+    -moz-box-orient: horizontal;
+    -webkit-flex-direction: row-reverse;
+    -ms-flex-direction: row-reverse;
+    flex-direction: row-reverse;
+    -webkit-flex-wrap: wrap-reverse;
+    -ms-flex-wrap: wrap-reverse;
+    flex-wrap: wrap-reverse;
+    -webkit-box-pack: start;
+    -moz-box-pack: start;
+    -webkit-justify-content: flex-start;
+    -ms-flex-pack: start;
+    justify-content: flex-start;
+    -webkit-align-content: stretch;
+    -ms-flex-line-pack: stretch;
+    align-content: stretch;
+    -webkit-box-align: start;
+    -moz-box-align: start;
+    -webkit-align-items: flex-start;
+    -ms-flex-align: start;
+    align-items: flex-start;
+
+    }
+ #errors{
+  color:red;
+  overflow: scroll;
+  height: 140;
+ }
+
+ #texts{
+  overflow: scroll;
+  height: 140;
+ }
+</style>
+</head>
+<body>
+Testing camera at 127.0.0.1:8080. warning no attempts to limit memory consumption are made. 
+<br>
+<button onclick="takePicture()">take picture</button>
+<button onclick="rapidFireImages(20)">take 60 pictures fast</button>
+<button onclick="rapidFireImages(90)">take 60 pictures medium</button>
+<button onclick="rapidFireImages(180)">take 60 pictures slow</button>
+<br>
+<button onclick="getLasers2(20000)">get many lasers</button>
+<br>
+<button onclick="testTriggers()">test triggers</button>make sure projector is connected
+<br>
+<button onclick="testshutter(100)">test shutter</button> 
+<br>
+<button onclick="HDR()">HDR</button>
+
+<br>
+<button onclick="gonuts()">go nuts</button>
+
+
+<div id='errors'></div>
+<div id='texts'></div>
+<div id="imgs"></div>
+
+</body>
+
+</html>
