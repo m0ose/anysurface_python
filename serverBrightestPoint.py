@@ -6,7 +6,7 @@ import cameraStuff as cs
 import StringIO
 from PIL import Image
 import myglobals
-
+import math
 
 
 myport = 8080
@@ -65,6 +65,16 @@ class Root(object):
 
       
 def parseArguments( shutter, gain, delay):
+    shutter = float( shutter)
+    gain = float( gain)
+    delay = float( delay)
+    if( shutter < 0.000001):
+        shutter = 0
+    if( delay < 0.000001):
+        delay = 0
+    if( gain < 0.000001):
+        gain = 0
+
     if gain > -999:
         cs.setGain( cs.cam, gain)
     if shutter > -999:
@@ -103,6 +113,7 @@ def getIndex():
     responseString += " <li><b><a href='http://127.0.0.1:" + port + "/brightestpoint.json'>http://127.0.0.1:" + port + "/brightestpoint.json</a></b>. Find the brightest Point"
     responseString += " <li><b><a href='http://127.0.0.1:" + port + "/brightestpoint.json?shutter=40&gain=0'>http://127.0.0.1:" + port + "/brightestpoint.json?shutter=40&gain=0</a></b>. Find the brightest Point"
     responseString += " <li><b><a href='http://127.0.0.1:" + port + "/stressTest.html'>http://127.0.0.1:" + port + "/stressTest.html</a></b>... more tests ..."
+    responseString += "<br><br><pre>" + cs.getInfo(cs.cam) +"</pre>"
     responseString += "</BODY></HTML>"
     return responseString
 

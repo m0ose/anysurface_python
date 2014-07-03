@@ -38,7 +38,8 @@ def initCam(lib, mode=None, fps=30, shutter=6.1, gain=1, isospeed = 800):
 def setDefaults(cam0):
     cam0.gain.mode = 'auto'#looks like you need to set gain before exposure. weird?
     cam0.brightness.mode = 'auto'#'manual'
-    cam0.exposure.mode = 'auto'
+    cam0.exposure.mode = 'manual'
+    cam0.exposure.val = 50
     cam0.shutter.mode='auto'
     cam0.trigger.on = False
     cam0.trigger_delay.on = False   
@@ -49,8 +50,6 @@ def restartCamera( cam0):
     cam0.stop()
     cam0.start( interactive=True)
     setDefaults(cam0)
-
-
 
 def getInfo(cam0):
     result = ""
