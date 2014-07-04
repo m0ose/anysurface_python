@@ -28,7 +28,7 @@ def initCam(lib, mode=None, fps=30, shutter=6.1, gain=1, isospeed = 800):
     cam0_handle = cams[0]
     print(cams)
     cam0 = Camera(lib, guid=cam0_handle['guid'], mode=None, framerate=fps, shutter=shutter, gain=gain)
-    cam0.mode = cam0.modes[3]# 3 is black and white
+    cam0.mode = cam0.modes[0]# 3 is black and white
     cam0.start(interactive=True)
     setDefaults( cam0)
     print( "opening Camera")
@@ -78,7 +78,8 @@ def showImg(cam0, filename=None):
         img1 = Image.fromarray(matrix) 
         img1.save(filename)
     lastPicture = matrix
-    return matrix
+    mat2 = demosaic_ghetto(matrix)
+    return mat2
 
 def brightestPoint(cam):
     global background
@@ -167,7 +168,12 @@ def setGain(cam, gain):
         showImg(cam)
     return changed     
 
-
+def demosaic_ghetto( m ):
+    r = m[0::2, 0::2]
+    g =  (( m[0::2, 1::2]/2 + m[1::2, 0::2]/2)).clip(0,254)
+    b = m[1::2, 1::2]
+    ms = np.dstack([r,g,b])
+    return ms
 
 l = DC1394Library()
 cam = initCam(l)

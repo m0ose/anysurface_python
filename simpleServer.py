@@ -89,11 +89,11 @@ def parseArguments( shutter = -999, gain = -999, delay = -999):
     gain = float( gain)
     delay = float( delay)
     if( shutter < 0.000001):
-        shutter = 0
+        shutter = min(0,shutter)
     if( delay < 0.000001):
-        delay = 0
+        delay = min(0,delay)
     if( gain < 0.000001):
-        gain = 0
+        gain = min(0,gain)
 
     if gain > -999:
         cs.setGain( cs.cam, gain)
