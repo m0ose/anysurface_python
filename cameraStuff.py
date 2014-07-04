@@ -12,6 +12,8 @@ import random
 import myglobals
 import math
 
+useColor = True
+
 currentShutter = None
 currentDelay = None
 currentGain = None
@@ -21,6 +23,7 @@ background = None
 
 
 def initCam(lib, mode=None, fps=30, shutter=6.1, gain=1, isospeed = 800):
+    global useColor
     cams = lib.enumerate_cameras()
     if len(cams)<=0:
         print("ERROR: no Camera found. Make sure it is plugged into the computer")
@@ -28,7 +31,10 @@ def initCam(lib, mode=None, fps=30, shutter=6.1, gain=1, isospeed = 800):
     cam0_handle = cams[0]
     print(cams)
     cam0 = Camera(lib, guid=cam0_handle['guid'], mode=None, framerate=fps, shutter=shutter, gain=gain)
-    cam0.mode = cam0.modes[0]# 3 is black and white
+    if useColor == True:
+        cam0.mode = cam0.modes[0]# 3 is black and white
+    else:
+        cam0.mode = cam0.modes[3]
     cam0.start(interactive=True)
     setDefaults( cam0)
     print( "opening Camera")
@@ -71,13 +77,15 @@ def getInfo(cam0):
     return result
 
 def showImg(cam0, filename=None):
-    global imgshape
+    global imgshape, useColor
     matrix = cam0.current_image
     imgshape = matrix.shape     
     if filename != None:
         img1 = Image.fromarray(matrix) 
         img1.save(filename)
     lastPicture = matrix
+    if useColor == False:
+        return matrix
     mat2 = demosaic_ghetto(matrix)
     return mat2
 
