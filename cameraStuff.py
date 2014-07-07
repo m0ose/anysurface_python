@@ -176,6 +176,8 @@ def setGain(cam, gain):
         showImg(cam)
     return changed     
 
+# Not the most sophisticated way to demosaic an image. But it's fast
+#
 def demosaic_ghetto( m ):
     r = m[0::2, 0::2]
     g =  (( m[0::2, 1::2]/2 + m[1::2, 0::2]/2)).clip(0,254)
