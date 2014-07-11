@@ -17,6 +17,7 @@ useColor = True
 currentShutter = None
 currentDelay = None
 currentGain = None
+currentexposure = None
 lastPictureTime = time.time()
 lastPicture = None
 background = None
@@ -176,6 +177,24 @@ def setGain(cam, gain):
         showImg(cam)
     return changed     
 
+def setExposure(cam, exposure):
+    exposure = float(exposure )
+    global currentexposure
+    changed = False
+    if  currentexposure != exposure:
+        if exposure < 0:
+            print('\nsetting exposure to auto\n')
+            cam.exposure.mode='auto'
+        elif exposure >= 0 :
+            cam.exposure.on = True
+            cam.exposure.mode='manual'
+            cam.exposure.val = exposure
+        currentexposure = exposure
+        changed = True
+        print("set exposure to", exposure, exposure < 0)
+        #time.sleep(0.0030)#take one picture 
+        showImg(cam)
+    return changed     
 # Not the most sophisticated way to demosaic an image. But it's fast
 #
 def demosaic_ghetto( m ):

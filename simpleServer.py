@@ -19,6 +19,7 @@ class GetHandler(BaseHTTPRequestHandler):
         shutter = -999
         gain = -999
         delay = -999
+        exposure = -999
         if argums.get('delay'):
             #print( 'delay', argums.get('delay'))
             delay = float( argums.get('delay')[0] )
@@ -28,8 +29,11 @@ class GetHandler(BaseHTTPRequestHandler):
         if argums.get('gain'):
             #print( 'gain', argums.get('gain'))
             gain = float( argums.get('gain')[0])
+        if argums.get('exposure'):
+            #print( 'exposure', argums.get('exposure'))
+            exposure = float( argums.get('exposure')[0])
 
-        parseArguments( shutter = shutter, gain = gain, delay=delay)
+        parseArguments( shutter = shutter, gain = gain, delay=delay, exposure=exposure)
 
 
         if 'shot' in realPath or 'image' in realPath:
@@ -84,16 +88,19 @@ class GetHandler(BaseHTTPRequestHandler):
         return
 
 
-def parseArguments( shutter = -999, gain = -999, delay = -999):
+def parseArguments( shutter = -999, gain = -999, delay = -999, exposure=-999):
     shutter = float( shutter)
     gain = float( gain)
     delay = float( delay)
+    exposure = float( exposure)
     if( shutter < 0.000001):
         shutter = min(0,shutter)
     if( delay < 0.000001):
         delay = min(0,delay)
     if( gain < 0.000001):
         gain = min(0,gain)
+    if( exposure < 0.000001):
+        exposure = min(0,exposure)
 
     if gain > -999:
         cs.setGain( cs.cam, gain)
@@ -103,6 +110,8 @@ def parseArguments( shutter = -999, gain = -999, delay = -999):
         # a division by 10 seems to be about correct, but more testing should be done
     if delay > -999:
         cs.setDelay( cs.cam, delay)
+    if exposure > -999:
+        cs.setExposure( cs.cam, exposure)
 
 def getFormattedImage(imgFormat):
     outimg = getImage()
