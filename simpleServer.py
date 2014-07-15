@@ -59,8 +59,7 @@ class GetHandler(BaseHTTPRequestHandler):
             f.close()
         else: #index file
             message_parts = [
-                ' ' + getIndex(),
-                ' Camera : ' + cs.getInfo( cs.cam),
+                '<pre> ' + getIndex(),
                 '\n\nCLIENT VALUES:',
                 'client_address=%s (%s)' % (self.client_address,
                                             self.address_string()),
@@ -76,6 +75,7 @@ class GetHandler(BaseHTTPRequestHandler):
                 'protocol_version=%s' % self.protocol_version,
                 '',
                 'HEADERS RECEIVED:',
+                '</pre>',
                 ]
             for name, value in sorted(self.headers.items()):
                 message_parts.append('%s=%s' % (name, value.rstrip()))
@@ -130,7 +130,7 @@ def getImage():
 def getIndex():
     global myport
     port = str(myport)
-    responseString = "<HTML><BODY><h3> Your connected to<h1> Web camera server</h1></h3>" 
+    responseString = "<HTML><BODY><h3> You are connected to the pyhton<h1> Web camera server</h1></h3>" 
     responseString += "<hr>Usage:<li><b><a href='http://127.0.0.1:" + port + "/shot.jpg'>http://127.0.0.1:" + port + "/shot.jpg</a> </b>"
     responseString += " <li><b><a href='http://127.0.0.1:" + port + "/shot.jpg?shutter=4&gain=0'>http://127.0.0.1:" + port + "/shot.jpg?shutter=4&gain=0</a></b>. Shutter and Gain can be set absolutely"
     responseString += " <li><b><a href='http://127.0.0.1:" + port + "/shot.jpg?delay=0.002'>http://127.0.0.1:" + port + "/shot.jpg?delay=0.002</a></b>. The delay in seconds afer GPIO trigger signal"
@@ -140,7 +140,7 @@ def getIndex():
     responseString += " <li><b><a href='http://127.0.0.1:" + port + "/brightestpoint.json'>http://127.0.0.1:" + port + "/brightestpoint.json</a></b>. Find the brightest Point"
     responseString += " <li><b><a href='http://127.0.0.1:" + port + "/brightestpoint.json?shutter=40&gain=0'>http://127.0.0.1:" + port + "/brightestpoint.json?shutter=40&gain=0</a></b>. Find the brightest Point"
     responseString += " <li><b><a href='http://127.0.0.1:" + port + "/stressTest.html'>http://127.0.0.1:" + port + "/stressTest.html</a></b>... more tests ..."
-    responseString += "<br><br><pre>" + cs.getInfo(cs.cam) +"</pre>"
+    responseString += "<br><hr><h2>Camera Information</h2><pre>" + cs.getInfo(cs.cam) +"</pre>"
     responseString += "</BODY></HTML>"
     return responseString
 
@@ -152,4 +152,6 @@ if __name__ == '__main__':
     try: 
         server.serve_forever()
     except:
+        server.shutdown()
+        cs.setDelay( cs.cam, -1)#this allows it to exit. weird huh?
         cs.cam.stop()
