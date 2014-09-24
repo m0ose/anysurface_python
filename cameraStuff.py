@@ -2,9 +2,6 @@ import sys
 import time
 from pydc1394 import DC1394Library, Camera
 from PIL import Image
-import matplotlib
-import decimal
-import signal
 import numpy as np
 import cv2
 import json
@@ -90,12 +87,20 @@ def showImg(cam0, filename=None):
     mat2 = demosaic_ghetto(matrix)
     return mat2
 
+def rgb2gray(rgb):
+    r, g, b = rgb[:,:,0], rgb[:,:,1], rgb[:,:,2]
+    gray = 0.5 * r + 0.4 * g + 0.1 * b
+    return gray
+
 def brightestPoint(cam):
     global background
     mat = showImg(cam) * 1.0
+    mat = rgb2gray( mat)
     if background == None:
         background = mat  
     fg = np.minimum( np.maximum(mat - background,0),255).astype('uint8')
+    #print(fg)
+    #fgg = rgb2gray( fg )
     mm = cv2.minMaxLoc(fg)
     imgshape = mat.shape
     if myglobals.saveImages and random.uniform(0,1) > 0.99:
